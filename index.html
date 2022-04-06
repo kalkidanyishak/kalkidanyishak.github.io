@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game</title>
+</head>
+
+<body>
+    <style>
+        *{
+            margin: 0px;
+        }
+        blue{
+            color: rgb(22, 100, 220);
+        }
+        red{
+            color: rgb(red 100, 22);
+        }
+        .main {
+            padding-top: 150px;
+
+        }
+
+        .child {
+            width: 50px;
+            height: 50px;
+            transition-duration: 0.5s;
+            color:white;
+            font-size: 40px;
+            text-align: center;
+            font-family: Arial, Helvetica, sans-serif;
+            font-weight: 700;
+            padding: 10px;
+            border: 5px solid rgb(22, 220, 220);
+        }
+        @keyframes kal{
+            0%{transform: rotateZ(0deg);}
+            100%{transform: rotateZ(360deg);}
+        }
+        @keyframes kal2{
+            0%{transform: rotateZ(0deg) rotateX(0deg) rotateZ(0deg);}
+            100%{transform: rotateZ(360deg) rotateX(360deg) rotateY(360deg); }
+        }
+        .container {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+        }
+        .container:first-child .child{
+            border-top: 0px;
+            animation-name: kal;
+            animation-duration: 1s;
+            animation-timing-function: linear;
+        }
+        .child:first-child{
+            border-left: 0px;
+            animation-name: kal;
+            animation-duration: 1s;
+            animation-timing-function: linear;
+        }
+        .child:last-child{
+            border-right:0px;
+            animation-name: kal;
+            animation-duration: 1s;
+            animation-timing-function: linear;
+        }
+        .container:last-child .child{
+            border-bottom:0px;
+            animation-name: kal;
+            animation-duration: 1s;
+            animation-timing-function: linear;
+        }
+        .container:nth-child(2) .child:nth-child(2){
+            animation-name: kal2;
+            animation-duration: 1s;
+            animation-timing-function: linear;
+        }
+        #score{
+            font-family: Arial, Helvetica, sans-serif;
+            font-weight: 700;
+            font-size: 25px;
+            padding: 50px;
+            text-align: center;
+        }
+    </style>
+    <div class="main" id="main">
+        
+    </div>
+    <div id="score">
+
+    </div>
+    <script>
+
+let html = `
+<div class="container">
+    <div class="child" id="1" onclick="game(this.id)"></div>
+    <div class="child" id="2" onclick="game(this.id)"></div>
+    <div class="child" id="3" onclick="game(this.id)"></div>
+</div>
+<div class="container">
+    <div class="child" id="4" onclick="game(this.id)"></div>
+    <div class="child" id="5" onclick="game(this.id)"></div>
+    <div class="child" id="6" onclick="game(this.id)"></div>
+</div>
+<div class="container">
+    <div class="child" id="7" onclick="game(this.id)"></div>
+    <div class="child" id="8" onclick="game(this.id)"></div>
+    <div class="child" id="9" onclick="game(this.id)"></div>
+</div>
+`
+document.getElementById('main').innerHTML = html
+
+let winList = ['123', '456', '789', '147', '258', '369', '159', '357']
+let allIds = ['1', '2', '3', '4', '5', '6', '7', '8', '9']
+let score = {
+    O: 0,
+    X: 0
+}
+let gameOver = false
+let paint = true;
+let occupied = []
+let isGameOver = () => gameOver === true || X.isWin() === true || occupied.length === 9
+
+let game = (input) => occupied.find(a => a == input) !== input && update(O, X, input)
+let resetGame = () => {
+    setTimeout(() => {
+        gameOver = false
+        paint = true
+        occupied = []
+        X = new Player('X')
+        O = new Player('O')
+        update = updateMain
+        document.getElementById('main').innerHTML = html
+    }, 1000)
+}
+let over = (player) => {
+    if (player.isWin() == true && paint == true) {
+        resetGame()
+        score[player.text] += 1
+        document.getElementById('score').innerHTML = `<blue>${score['O']}</blue> : <red>${score['X']}</red>`
+        paint = false
+        console.log(player.text)
+        player.winOrder.split('').map(id => {
+            document.getElementById(id).style.background = 'rgba(0,100,200,0.8)'
+            document.getElementById(id).style.color = 'white'
+        })
+        update = () => console.log(player.text)
+    }
+}
+let updateMain = (player1, player2, input) => {
+    let updater = (id, text) => {
+        document.getElementById(id).innerText = text
+        document.getElementById(id).style.color = 'rgba(0, 100, 200, 0.8)'
+    }
+    let player = player1.manPlay(input)
+    let robot = player2.roboPlay()
+    console.log(robot)
+    player && updater(player, player1.text)
+    setTimeout(() => robot && updater(robot, player2.text), 500)
+
+    setTimeout(() => over(player1), 501)
+    setTimeout(() => over(player2), 501)
+}
+let update = updateMain
+
+function Player(text) {
+
+    let isfreeId = (id) => occupied.find(a => a == id) !== id
+    let freeIdList = () => allIds.filter(a => !occupied.includes(a))
+
+    this.text = text
+    this.arr = []
+
+    this.random = () => {
+        let randomIdList = freeIdList()
+        let randomIdLength = randomIdList.length
+        let randomId = randomIdList[Math.floor(Math.random() * randomIdLength)]
+        this.push(randomId)
+        return randomId
+    }
+
+    this.push = (id) => isfreeId(id) && this.arr.push(id) && occupied.push(id);
+    this.winOrder = ''
+    this.isWin = () => {
+        if (this.arr.length !== 1) {
+            let mainId = this.arr[this.arr.length - 1]
+            let newArr = this.arr.slice(0, -1)
+            for (let id of newArr) {
+                for (let winString of winList) {
+                    if (winString.includes(mainId) && winString.includes(id)) {
+                        this.winOrder = winString
+                        let newId = winString.replace(mainId, '').replace(id, '')
+                        return this.arr.find(a => a == newId) == newId ? gameOver = true : isfreeId(newId) && newId
+                    }
+                }
+            }
+        } else {
+            return false
+        }
+    }
+    this.roboPlay = () => {
+        let isFinal = this.isWin()
+        if (typeof isFinal == 'string') {
+            return this.push(isFinal) && isFinal
+        } else {
+            let OWin = O.isWin()
+            return isGameOver() === true ? resetGame() : OWin == false ? this.random() : this.push(OWin) && OWin || this.random()
+        }
+    }
+    this.manPlay = (value) => {
+        return isGameOver() === true ? resetGame() : this.push(value) && value
+    }
+}
+let O = new Player('O') //man
+let X = new Player('X') //robot
+    </script>
+</body>
+
+</html>
