@@ -194,6 +194,8 @@
                             document.getElementById(id).style.background = 'rgba(0,100,200,0.8)'
                             document.getElementById(id).style.color = 'white'
                         })
+                        score['O']+=1
+                        document.getElementById('score').innerHTML = `<blue>${score['O']}</blue> : <red>${score['X']}</red>`
                         return resetGame()
                     }
                 }
