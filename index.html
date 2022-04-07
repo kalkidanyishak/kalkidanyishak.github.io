@@ -94,6 +94,7 @@
 
     </div>
     <script>
+
 let html = `
 <div class="container">
     <div class="child" id="1" onclick="game(this.id)"></div>
@@ -134,13 +135,15 @@ let resetGame = () => {
         O = new Player('O')
         update = updateMain
         document.getElementById('main').innerHTML = html
-    }, 800)
+    }, 1000)
 }
 let over = (player) => {
-    if (player.isWin() == true && paint == true) {
+    if (player.isWin() == true && paint == true &&
+    player.arr.find(a=>a==player.winId)==player.winId) {
+        console.log(player.arr, player.winOrder, player.winId)
         resetGame()
         score[player.text] += 1
-        document.getElementById('score').innerText = `${score['O']} : ${score['X']}`
+        document.getElementById('score').innerHTML = `<blue>${score['O']}</blue> : <red>${score['X']}</red>`
         paint = false
         console.log(player.text)
         player.winOrder.split('').map(id => {
@@ -184,6 +187,7 @@ function Player(text) {
 
     this.push = (id) => isfreeId(id) && this.arr.push(id) && occupied.push(id);
     this.winOrder = ''
+    this.winId=''
     this.isWin = () => {
         if (this.arr.length !== 1) {
             let mainId = this.arr[this.arr.length - 1]
@@ -193,6 +197,7 @@ function Player(text) {
                     if (winString.includes(mainId) && winString.includes(id)) {
                         this.winOrder = winString
                         let newId = winString.replace(mainId, '').replace(id, '')
+                        this.winId=newId
                         return this.arr.find(a => a == newId) == newId ? gameOver = true : isfreeId(newId) && newId
                     }
                 }
@@ -204,8 +209,9 @@ function Player(text) {
     this.roboPlay = () => {
         let isFinal = this.isWin()
         if (typeof isFinal == 'string') {
-            return this.push(isFinal) && isFinal
-        } else {
+            return this.push(isFinal) && isFinal || this.random()
+        } 
+        else{
             let OWin = O.isWin()
             return isGameOver() === true ? resetGame() : OWin == false ? this.random() : this.push(OWin) && OWin || this.random()
         }
@@ -218,5 +224,4 @@ let O = new Player('O') //man
 let X = new Player('X') //robot
     </script>
 </body>
-
 </html>
